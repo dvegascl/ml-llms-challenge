@@ -68,6 +68,7 @@ class DelayModel:
         """
         if self._model is None:
             self._model = joblib.load("challenge/model.pkl")
+
         return self._model.predict(features).tolist()
 
 if __name__ == "__main__":
