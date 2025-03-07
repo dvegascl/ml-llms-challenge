@@ -67,7 +67,7 @@ class DelayModel:
         Predice retrasos en nuevos vuelos.
         """
         if self._model is None:
-            self._model = joblib.load("challenge/model.pkl")
+            self._model = joblib.load("/app/challenge/model.pkl")
 
         return self._model.predict(features).tolist()
 
