@@ -3,7 +3,7 @@ import fastapi
 import joblib
 import pandas as pd
 import uvicorn
-from challenge.model import DelayModel
+from model import DelayModel
 
 # Inicializar FastAPI
 app = fastapi.FastAPI()
