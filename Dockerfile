@@ -16,4 +16,6 @@ EXPOSE 10000
 # Comando para iniciar la API
 CMD ["uvicorn", "challenge.api:app", "--host", "0.0.0.0", "--port", "10000"]
 
-COPY challenge/model.pkl challenge/model.pkl
+# Copiar model.pkl en el contenedor dentro de la carpeta challenge/
+COPY challenge/model.pkl /ml-llms-challenge/challenge/model.pkl
+
