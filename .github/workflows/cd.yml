@@ -1,0 +1,51 @@
+---
+name: 'Continuous Delivery'
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+      
+      - name: Build and deploy to Cloud Run
+        run: |
+          gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/delay-prediction-api:${{ github.sha }}
+          gcloud run deploy delay-prediction-api \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/delay-prediction-api:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated
+      
+      - name: Update API URL in Makefile
+        run: |
+          DEPLOYED_URL=$(gcloud run services describe delay-prediction-api \
+            --platform managed \
+            --region us-central1 \
+            --format='value(status.url)')
+          sed -i "s|STRESS_URL = .*|STRESS_URL = $DEPLOYED_URL|g" Makefile
+      
+      - name: Run stress test
+        run: |
+          pip install flask==2.0.1 jinja2==3.0.3 locust
+          make stress-test
